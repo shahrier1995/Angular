@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+   
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js" type="text/javascript"></script>
+
+    <script>
+
+        var app = angular.module('myapp', []);
+        // function drag(id) {
+        //     $(id).draggable(
+        //         {
+        //             drag: function () {
+        //                 var offset = $(this).offset();
+        //                 var xPos = offset.left;
+        //                 var yPos = offset.top;
+        //                 //$('#posX').text('x: ' + xPos);
+        //                 //$('#posY').text('y: ' + yPos);
+        //             }
+        //         });
+
+        // }
+
+        function axis(id) {
+            //var $that = $(id).attr('id');
+            //var $this = $(id);
+
+            var div = document.getElementById(id);
+            console.log(div);
+            //var offset = $this.offset();
+            console.log(div.offsetLeft);
+            console.log(div.offsetTop);
+        }
+        function drag(id) {
+            var $dragging = null;
+            var $this = $(id).attr('id');
+            //console.log("drag"+id);
+            $(document.body).on("mousemove", function (e) {
+                if ($dragging) {
+                    $dragging.offset({
+                        top: e.pageY,
+                        left: e.pageX
+                    });
+                }
+
+                var output = [id.slice(0, 5), 'k', id.slice(5)].join('');
+                document.getElementById(output).innerHTML = axis('#' + id);
+                //console.log('ager chaaang #'+id);
+                //console.log('change  #'+id);
+
+            });
+
+            $(document.body).on("mousedown", $this, function (e) {
+                $dragging = $(e.target);
+            });
+
+            $(document.body).on("mouseup", function (e) {
+                $dragging = null;
+            });
+
+        }
+   
+        app.controller('myCtrl', ['$scope', '$compile', function ($scope, $compile) {
+            $scope.count = 0;
+            $scope.thiddarg = function (id) {
+            console.log("draag "+id);
+            $(id).draggable();
+            }
+            $scope.addElement = function () {
+
+
+                var $newEle = angular.element('<div my-draggable start-x="startX" start-y="startY" x="x" y="y" id="addDiv' + $scope.count + '" style="position:realative;width: 100px;height:200px;background-color: blue;float:left"> <label id="firstk' + $scope.count + '">olid</label><button ng-click="rotateDiv(addDiv' + $scope.count + ')">press for rotate</button></div>');
+                //var $newEle = angular.element('<div ng-draggable="dragOptions" id="addDiv'+$scope.count+'" style="position:realative;width: 100px;height:200px;background-color: blue;float:left"> <label id="addlabel">Drag Me({{x}},{{y}})</label><button ng-click="rotateDiv(addDiv'+$scope.count+')">press for rotate</button></div>');
+                thiddarg('addDiv' + $scope.count);
+                var target = document.getElementById('target');
+                var temp = $compile($newEle)($scope);
+                angular.element(target).append(temp);
+                //drag('addDiv' + $scope.count);
+                document.getElementById('firstk' + $scope.count).innerHTML = axis('addDiv' + $scope.count);
+                axis('addDiv' + $scope.count);
+                $scope.count++;
+                console.log($scope.count);
+
+            }
+
+
+            $scope.items = [{}];
+            //$scope.dragt=drag(addDiv);
+            $scope.add = function (item) {
+                console.log(item);
+                //axis('addDiv'+count)
+                $scope.count++;
+                $scope.items.push({});
+            }
+
+            var count = 0;
+            //     $scope.addDiv = function(){
+            //     var newEle = angular.element('');
+            //     var target = document.getElementById('target');
+            //     angular.element(target).append(newEle);
+            //     count++;
+            //   };
+            $scope.rotateDiv = function (id) {
+                console.log("asaasas");
+                //  var $this = $(id).attr('id');
+                //console.log($this);
+
+                //console.log("rotat"+index);
+
+                //document.querySelector($this).style.transform 
+                // = 'rotate(90deg)'; 
+                var img = angular.element(document.getElementById(id));
+                console.log(id);
+                var top = img.offsetTop;
+                console.log(top);
+                var left = img.offsetLeft;
+                console.log(left);
+                img.style.cssText = 'top:' + top + 'px;left:' + left + 'px;width: 200px;height:100px;background-color: red; ;float:left;';
+            };
+            $scope.dragOptions = {
+                start: function (e) {
+                    console.log("STARTING");
+                },
+                drag: function (e) {
+                    console.log("DRAGGING");
+                },
+                stop: function (e) {
+                    console.log("STOPPING");
+                },
+                container: 'container'
+            };
+
+            //var eer= angular.element(document.querySelector('#addDiv')).top; ;
+            //console.log("asasas"+eer);
+            $scope.startX = 0;
+            $scope.startY = 0;
+            $scope.x = 0;
+            $scope.y = 0;
+
+        }]).directive('ngDraggable', function ($document) {
+            return {
+                restrict: 'A',
+                scope: {
+                    dragOptions: '=ngDraggable'
+                },
+                link: function (scope, elem, attr) {
+                    var startX, startY, x = 0, y = 0,
+                        start, stop, drag, container;
+
+                    var width = elem[0].offsetWidth,
+                        height = elem[0].offsetHeight;
+
+                    // Obtain drag options
+                    if (scope.dragOptions) {
+                        start = scope.dragOptions.start;
+                        drag = scope.dragOptions.drag;
+                        stop = scope.dragOptions.stop;
+                        var id = scope.dragOptions.container;
+                        if (id) {
+                            container = document.getElementById(id).getBoundingClientRect();
+                        }
+                    }
+
+                    // Bind mousedown event
+                    elem.on('mousedown', function (e) {
+                        e.preventDefault();
+                        startX = e.clientX - elem[0].offsetLeft;
+                        startY = e.clientY - elem[0].offsetTop;
+                        $document.on('mousemove', mousemove);
+                        $document.on('mouseup', mouseup);
+                        if (start) start(e);
+                    });
+
+                    // Handle drag event
+                    function mousemove(e) {
+                        y = e.clientY - startY;
+                        x = e.clientX - startX;
+                        setPosition();
+                        if (drag) drag(e);
+                    }
+
+                    // Unbind drag events
+                    function mouseup(e) {
+                        $document.unbind('mousemove', mousemove);
+                        $document.unbind('mouseup', mouseup);
+                        if (stop) stop(e);
+                    }
+
+                    // Move element, within container if provided
+                    function setPosition() {
+                        if (container) {
+                            if (x < container.left) {
+                                x = container.left;
+                            } else if (x > container.right - width) {
+                                x = container.right - width;
+                            }
+                            if (y < container.top) {
+                                y = container.top;
+                            } else if (y > container.bottom - height) {
+                                y = container.bottom - height;
+                            }
+                        }
+
+                        elem.css({
+                            top: y + 'px',
+                            left: x + 'px'
+                        });
+                    }
+                }
+            }
+
+        })
+            // .directive('myDraggable', ['$document', function ($document) {
+            //     return {
+            //         scope: {
+            //             startX: "=",
+            //             startY: "=",
+            //             x: '=',
+            //             y: '='
+            //         },
+            //         link: function (scope, element, attr) {
+            //             element.css({
+            //                 position: 'relative',
+            //                 border: '1px solid red',
+            //                 backgroundColor: 'lightgrey',
+            //                 cursor: 'pointer'
+            //             });
+
+            //             element.on('mousedown', function (event) {
+            //                 // Prevent default dragging of selected content
+            //                 event.preventDefault();
+            //                 scope.startX = event.pageX - scope.x;
+            //                 scope.startY = event.pageY - scope.y;
+            //                 $document.on('mousemove', mousemove);
+            //                 $document.on('mouseup', mouseup);
+            //                 scope.$apply();
+            //             });
+
+            //             function mousemove(event) {
+            //                 scope.y = event.pageY - scope.startY;
+            //                 scope.x = event.pageX - scope.startX;
+            //                 element.css({
+            //                     top: scope.y + 'px',
+            //                     left: scope.x + 'px'
+            //                 });
+            //                 scope.$apply();
+            //             }
+
+            //             function mouseup() {
+            //                 $document.off('mousemove', mousemove);
+            //                 $document.off('mouseup', mouseup);
+            //             }
+            //         }
+            //     };
+            // }]);
+
+
+//             directive('draggable', ['$document', function($document) {
+//     return {
+//         restrict: 'A',
+//         link: function(scope, elm, attrs) {
+//             var startX, startY, initialMouseX, initialMouseY;
+//             elm.css({ position: 'absolute' });
+
+//             elm.bind('mousedown', function($event) {
+//                 startX = elm.prop('offsetLeft');
+//                 startY = elm.prop('offsetTop');
+//                 initialMouseX = $event.clientX;
+//                 initialMouseY = $event.clientY;
+//                 $document.bind('mousemove', mousemove);
+//                 $document.bind('mouseup', mouseup);
+//                 return false;
+//             });
+
+//             function mousemove($event) {
+//                 var dx = $event.clientX - initialMouseX;
+//                 var dy = $event.clientY - initialMouseY;
+//                 elm.css({
+//                     top: startY + dy + 'px',
+//                     left: startX + dx + 'px'
+//                 });
+//                 return false;
+//             }
+
+//             function mouseup() {
+//                 $document.unbind('mousemove', mousemove);
+//                 $document.unbind('mouseup', mouseup);
+//             }
+//         }
+//     };
+// }]);
+    </script>
+</head>
+
+<body>
+
+    <div ng-app="myapp" ng-controller="myCtrl">
+        <!-- <div > 
+        <span my-draggable start-x="startX" start-y="startY" x="x" y="y" id="drag">Drag Me({{x}},{{y}})</span>
+      </div> -->
+
+
+        <div style="width:100%;height:100%">
+
+            <div id="drag" style="width: 400px;height: 600px;background-color: cadetblue;float: left;">
+                <div id="target1">
+                    <div ng-repeat="item in items">
+                        <span>
+                            <!-- <div my-draggable start-x="startX" start-y="startY" x="x" y="y" id="{{'addDiv'+count}}"
+                                style="position:realative;width: 100px;height:200px;background-color: blue;float:left">
+                                <label id="addlabel">Drag Me({{x}},{{y}})</label><button
+                                    ng-click="rotateDiv('addDiv')">press for rotate</button></div> -->
+                        </span>
+                    </div>
+
+                    <div id="target"></div>
+                    <!-- <div style="float: right;background-color: blue;"><button ng-click="add()">Add a div</button> -->
+                </div>
+
+            </div>
+        </div>
+        <div style="float: right;">
+            <button type="button" ng-click="addElement()">Add Element</button>
+        </div>
+    </div>
+    <!-- <div id="box" style="width: 800px;height:1200px;background-color: yellow;float: left;">
+        <p>Input something in the input box:</p>
+<p>Name : <input type="text" ng-model="name" placeholder="Enter name here"></p>
+<h1>Hello {{name}}</h1>
+
+<div ng-controller="myCtrl">
+    <p>Click the button to run a function:</p>
+    <button ng-click="myFunc()">OK</button>
+    <p>The button has been clicked {{count}} times.</p>
+  </div>
+</div>
+        <div id="parent"></div>
+        <div id="content">
+        </div>
+    </div>
+    <div style="width: 100%;height:100%;background-color: red;float: right; ">
+        <button id="btnCor">Return the offset coordinates of the p element</button>
+        <input type="button" value="+" onclick="addRow()">
+
+        <div id="buttonContainer">
+
+        </div>
+        
+        <button id="addButton">
+        Add Button
+        </button>
+        <label id="arrayId"></label>
+    </div> -->
+
+    </div>
+</body>
+
+</html>
